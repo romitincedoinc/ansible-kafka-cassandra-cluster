@@ -1,0 +1,45 @@
+- name: disable firewalld
+  service: name=firewalld state=stopped enabled=no
+  ignore_errors: True  #when firewalld is stopped
+  tags: cassandra
+
+- name: install tools
+  yum: name="@Development tools" state=present
+  tags: cassandra
+
+- name: download cassandra
+  get_url: url={{ cassandra.download_link }} dest={{ cassandra.tmp_dir }}/cassandra.tar.gz
+  tags: cassandra
+
+- name: unarchive cassandra
+  unarchive: src={{ cassandra.tmp_dir }}/cassandra.tar.gz dest={{ cassandra.install_dir }} copy=no
+  tags: cassandra
+
+- name: create group
+  group:
+    name: cassandra
+    state: present
+  tags: cassandra
+
+- name: create user
+  user:
+    name: cassandra
+    group: cassandra
+  tags: cassandra
+
+- name: Copy real config
+  template:
+    src: cassandra-yaml.j2
+    dest: "{{ cassandra_dir }}/config/real-server.properties"
+  notify: restart cassandra
+  tags: cassandra
+
+- name: systemd start script
+  template:
+    src: cassandra-systemd.j2
+    dest: /etc/systemd/system/cassandra.service
+    owner: root
+    group: root
+    mode: 644
+  notify: start cassandra
+  tags: cassandra

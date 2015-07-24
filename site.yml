@@ -9,3 +9,7 @@
 - hosts: kafka
   roles:
     - kafka
+
+- hosts: cassandra
+  roles:
+    - cassandra

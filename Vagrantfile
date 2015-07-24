@@ -40,7 +40,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   zk_port = 2181
   kafka_vm_memory_mb = 512
   kafka_port = 9092
-
+  cassandra_vm_memory_mb = 512
+  cassandra_port = 9042
   # < ------- These need to be set in group vars if using Ansible w/o Vagrant -------
 
   # The follwing variables will need to be passed manually if you want to use the Ansible
@@ -63,6 +64,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     'kafka-node-3' => { :broker_id => 3 }
   }
 
+  # Note that node_id must be unique for each host in the cluster. It should ideally not change
+  # throughout the lifetime of the Cassandra installation on a given machine.
+  cassandra_cluster_info = {
+    'cassandra-node-1' => { :node_id => 1 },
+    'cassandra-node-2' => { :node_id => 2 },
+    'cassandra-node-3' => { :node_id => 3 }
+  }
+
   ## ------- These need to be set in group vars if using Ansible w/o Vagrant ------- >
 
   # Helper to make new ips
@@ -73,6 +82,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   kafka_ips = IpAssigner.generate(
     IpAssigner.next_ip(zk_ips.last || private_network_begin),
     kafka_cluster_info.size)
+
+  cassandra_ips = IpAssigner.generate(
+      IpAssigner.next_ip(kafka_ips.last || private_network_begin),
+      cassandra_cluster_info.size)
 
   zk_cluster = Hash[zk_cluster_info.map.with_index { |(k, v), idx|
     [k, v.merge(
@@ -90,7 +103,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       :client_forward_to => kafka_port + idx )]
   }]
 
-  total_cluster = zk_cluster.merge(kafka_cluster)
+  cassandra_cluster = Hash[cassandra_cluster_info.map.with_index { |(k, v), idx|
+    [k, v.merge(
+      :ip => cassandra_ips[idx],
+      :memory => cassandra_vm_memory_mb,
+      :client_port => cassandra_port,
+      :client_forward_to => cassandra_port + idx )]
+  }]
+
+  total_cluster = zk_cluster.merge(kafka_cluster).merge(cassandra_cluster)
 
   total_cluster.each_with_index do |(short_name, info), idx|
 
@@ -108,6 +129,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
            ansible.playbook = "site.yml"
            ansible.groups = {
              "zk" => zk_cluster.keys,
+             "cassandra" => cassandra_cluster.keys,
              "kafka" => kafka_cluster.keys
            }
            ansible.verbose = 'vv'
@@ -117,7 +139,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
              accept_oracle_licence: accept_oracle_licence,
              vagrant_zk_client_port: zk_port,
              vagrant_zk_cluster_info: zk_cluster_info,
-             vagrant_kafka_cluster_info: kafka_cluster_info
+             vagrant_kafka_cluster_info: kafka_cluster_info,
+             vagrant_cassandra_cluster_info: cassandra_cluster_info
            }
          end
        end

@@ -1,11 +1,14 @@
-# Kafka CentOS virtual cluster
+# Kafka / Zookeeper / Cassandra CentOS virtual clusters
 
-Easily create a local Kafka cluster w/ Zookeeper quorum via Vagrant + Ansible. Or just use the Ansible playbooks.
+Easily create a local Kafka cluster w/ Zookeeper quorum  + Cassandra Cluster via Vagrant + Ansible. Or just use the Ansible playbooks.
 
-The main differences between this and [Wirbelsturm](https://github.com/miguno/wirbelsturm) are:
+Kafka Version : 0.8.2.1
+Cassandra Version : 2.2.0
+Zookeeper version : 3.4.6
 
-- Focus on Ansible and playbooks that can be used to provision Zk + Kafka w/o Vagrant
-- No Storm provisioning as of writing
+The main differences between this and [lloydmeta](https://github.com/lloydmeta/ansible-kafka-cluster) are:
+
+- Adding the Cassandra Cluster
 
 ## Usage
 
@@ -28,8 +31,8 @@ For other systems, checkout the installation pages of [Vagrant](https://docs.vag
 ### 2. Clone this repo
 
 ```
-git clone git@github.com:lloydmeta/ansible-kafka-cluster.git
-cd ansible-kafka-cluster
+git clone git@github.com:tquiviger/ansible-kafka-cassandra-cluster.git
+cd ansible-kafka-cassandra-cluster
 ```
 
 
@@ -101,4 +104,3 @@ bin/kafka-topics.sh --describe --zookeeper zk-node-1:2181 --topic my-replicated-
 Feel free to send and consume messages while the node is down. Note though, that you may have to restart some of the shell-based consumer/producers that are already running because they don't work well in disaster situations..
 
 ### 8. Bring the Kafka node back up, put it to sleep, etc.
-
