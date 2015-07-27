@@ -89,3 +89,36 @@ my test message 2
 ```
 
 ### 4. Test your Cassandra Cluster
+
+SSH into the first and second Cassandra nodes
+In separate terminals, run:
+
+```
+vagrant ssh cassandra-node-1
+```
+
+```
+vagrant ssh cassandra-node-2
+```
+In the 1st node :
+
+```
+/etc/dsc-cassandra-2.2.0/bin/cqlsh 192.168.5.108
+
+CREATE KEYSPACE dev
+WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 2 };
+USE dev;
+
+CREATE TABLE test (
+id int,
+PRIMARY KEY (id));
+```
+
+Go the 2nd node and check if the table exists (has been replicated) :
+
+```
+/etc/dsc-cassandra-2.2.0/bin/cqlsh 192.168.5.109
+
+USE dev;
+SELECT * FROM   test;
+```
