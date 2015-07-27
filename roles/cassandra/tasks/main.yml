@@ -3,18 +3,6 @@
   ignore_errors: True  #when firewalld is stopped
   tags: cassandra
 
-- name: install tools
-  yum: name="@Development tools" state=present
-  tags: cassandra
-
-- name: download cassandra
-  get_url: url={{ cassandra.download_link }} dest={{ cassandra.tmp_dir }}/cassandra.tar.gz
-  tags: cassandra
-
-- name: unarchive cassandra
-  unarchive: src={{ cassandra.tmp_dir }}/cassandra.tar.gz dest={{ cassandra.install_dir }} copy=no
-  tags: cassandra
-
 - name: create group
   group:
     name: cassandra
@@ -27,11 +15,37 @@
     group: cassandra
   tags: cassandra
 
+- name: install tools
+  yum: name="@Development tools" state=present
+  tags: cassandra
+
+- name: download cassandra
+  get_url: url={{ cassandra.download_link }} dest={{ cassandra.tmp_dir }}/cassandra.tar.gz
+  tags: cassandra
+
+- name: unarchive cassandra
+  unarchive: src={{ cassandra.tmp_dir }}/cassandra.tar.gz dest=/etc copy=no
+  tags: cassandra
+
 - name: Copy real config
   template:
-    src: cassandra-yaml.j2
-    dest: "{{ cassandra_dir }}/config/real-server.properties"
+    src: cassandra.yaml.j2
+    dest: "{{ cassandra.install_dir }}/conf/cassandra.yaml"
   notify: restart cassandra
+  tags: cassandra
+
+- name: Copy custom cassandra-env.sh
+  template:
+    src: cassandra-env.sh.j2
+    dest: "{{ cassandra.install_dir }}/conf/cassandra-env.sh"
+  tags: cassandra
+
+- name: Ensures data dir {{ cassandra.data_dir }} exists
+  file:
+    path: "{{ cassandra.data_dir }}"
+    state: directory
+    owner: cassandra
+    group: cassandra
   tags: cassandra
 
 - name: systemd start script

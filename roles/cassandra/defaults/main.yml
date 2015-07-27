@@ -1,5 +1,8 @@
 cassandra:
   version: 2.2.0
   download_link: "http://downloads.datastax.com/community/dsc-cassandra-2.2.0-bin.tar.gz"
-  install_dir: "/etc"
+  install_dir: "/etc/dsc-cassandra-2.2.0"
+  data_dir: "/var/lib/cassandra"
   tmp_dir: "/tmp"
+  max_heap_size: "128M"
+  heap_newsize: "50M"

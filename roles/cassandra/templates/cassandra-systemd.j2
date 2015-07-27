@@ -5,9 +5,9 @@ After=network.target
 [Service]
 Type=forking
 PIDFile=/var/lib/cassandra/cassandra.pid
-User=cassandra
-Group=cassandra
-ExecStart=/etc/cassandra/bin -p /var/lib/cassandra/cassandra.pid
+User=root
+Group=root
+ExecStart=/etc/dsc-cassandra-2.2.0/bin/cassandra -p /var/lib/cassandra/cassandra.pid
 StandardOutput=journal
 StandardError=journal
 LimitNOFILE=infinity
